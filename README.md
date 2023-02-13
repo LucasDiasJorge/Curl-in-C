@@ -10,7 +10,7 @@
 
 1. Making REST methods with curl
   
-      - [ ] Post
+      - [x] Post
   
       - [x] Get
   
@@ -35,7 +35,7 @@
     ```sh
    gcc -o main main.c -lcurl
    ```
-4. Exec main
+5. Exec main
     ```sh
    ./main
    ```   
