@@ -50,4 +50,6 @@ Used in embedded projects with Arduino and similar.
 
 _For more examples, please refer to the [Documentation](https://curl.se/docs/)_
 
+_For post, used [Curl post](https://curl.se/libcurl/c/http-post.html)_
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
