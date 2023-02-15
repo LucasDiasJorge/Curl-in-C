@@ -8,7 +8,7 @@
 
 ### Next step:
 
-1. Making REST methods with curl
+1. Making REST methods with curl (main)
   
       - [x] Post
   
@@ -19,6 +19,10 @@
       - [ ] Delete
     
       - [ ] Patch
+      
+2. Making Post from txt file (feature/post-file)
+    
+      - Used on data stored in embedded Rasp pi memory
   
   ### Installation
 
