@@ -1,59 +1,50 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <curl/curl.h>
- 
-size_t got_data(char *buffer, size_t itemsize, size_t nitems, void* ignorethis){
-  
-  size_t bytes = itemsize * nitems;
-
-  int linenumber = 1;
-
-  printf("New chunck (%zu bytes)\n", bytes);
-
-  printf("%d:",linenumber);
-
-  for(int i=0; i < bytes; i++){
-    
-    printf("%c",buffer[i]);
-    
-    if(buffer[i] == '\n'){
-      linenumber++;
-      printf("%d:",linenumber);
-    }
-  }
-
-  printf("\n\n");
-
-  return bytes;
-}
-
+#include <unistd.h>
 
 int main(void)
 {
-  CURL *curl;
-  CURLcode res;
- 
-  curl = curl_easy_init();
-  
-  if(curl) {
+    CURL *curl;
+    CURLcode res;
+    FILE *fp;
 
-    struct curl_slist *headers = NULL;
-
-    headers = curl_slist_append(headers, "Content-Type: application/json");
-
-    curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.1.65:8888/api/v1/auth");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{\"user\":\"user@email.com\",\"pass\":\"easypass\"}");
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
-
-    res = curl_easy_perform(curl);
-
-    if(res != CURLE_OK){
-      fprintf(stderr, "curl_easy_perform() failed: %s\n",curl_easy_strerror(res));
-    }
+    curl = curl_easy_init();
     
-    curl_slist_free_all(headers);
-    curl_easy_cleanup(curl);
-  }
+    if (curl)
+    {
+        fp = fopen("lista.txt", "r");
+        char *line = NULL;
+        size_t len = 0;
+        ssize_t read;
 
-  return 0;
+        while ((read = getline(&line, &len, fp)) != -1)
+        {
+
+            printf("%ld\n",len);
+
+            curl_easy_setopt(curl, CURLOPT_URL, "http://10.0.0.155:8888/api/v1/ping");
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, line);
+
+            res = curl_easy_perform(curl);
+
+            /* Verifica se a requisição foi bem-sucedida */
+            if (res != CURLE_OK)
+            {
+                fprintf(stderr, "curl_easy_perform() failed: %s\n",
+                        curl_easy_strerror(res));
+                break;
+            }
+
+            remove("lista.txt");
+
+            sleep(10);
+            
+        }
+
+        curl_easy_cleanup(curl);
+        free(line);
+        fclose(fp);
+    }
+    return 0;
 }
