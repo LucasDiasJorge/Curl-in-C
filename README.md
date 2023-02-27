@@ -17,8 +17,6 @@
       - [ ] Put
   
       - [ ] Delete
-    
-      - [ ] Patch
       
 2. Making Post from txt file (feature/post-file)
     
