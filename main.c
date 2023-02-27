@@ -27,14 +27,27 @@ size_t got_data(char *buffer, size_t itemsize, size_t nitems, void* ignorethis){
 }
 
 
-int main(void)
-{
+int main(int argc, char *argv[]){
   CURL *curl;
   CURLcode res;
  
   curl = curl_easy_init();
   
-  if(curl) {
+  char operation = *argv[1];
+
+  //Get
+  if(curl && operation == 'g') {
+        curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.1.65:8888/api/v1/ping");
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
+        res = curl_easy_perform(curl);
+        if(res != CURLE_OK) {
+            fprintf(stderr, "Erro ao acessar a URL: %s\n", curl_easy_strerror(res));
+        }
+        curl_easy_cleanup(curl);
+    }
+
+  //Post
+  if(curl && operation == 'p') {
 
     struct curl_slist *headers = NULL;
 
@@ -42,7 +55,7 @@ int main(void)
 
     curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.1.65:8888/api/v1/auth");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{\"user\":\"user@email.com\",\"pass\":\"easypass\"}");
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{\"user\":\"email@email.com\",\"pass\":\"easypass\"}");
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
 
     res = curl_easy_perform(curl);
