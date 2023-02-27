@@ -41,9 +41,8 @@
    ```
 5. Exec main
     ```sh
-   ./main
+   ./main 'method g or p'
    ```   
- 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
