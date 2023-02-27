@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <curl/curl.h>
+#include <cjson/cJSON.h>
  
 size_t got_data(char *buffer, size_t itemsize, size_t nitems, void* ignorethis){
   
@@ -53,9 +55,15 @@ int main(int argc, char *argv[]){
 
     headers = curl_slist_append(headers, "Content-Type: application/json");
 
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddStringToObject(root, "user", "email@email.com");
+    cJSON_AddStringToObject(root, "pass", "easypass");
+    char *json_str = cJSON_Print(root);
+    printf("%s\n", json_str);
+
     curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.1.65:8888/api/v1/auth");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{\"user\":\"email@email.com\",\"pass\":\"easypass\"}");
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_str);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
 
     res = curl_easy_perform(curl);
@@ -63,7 +71,9 @@ int main(int argc, char *argv[]){
     if(res != CURLE_OK){
       fprintf(stderr, "curl_easy_perform() failed: %s\n",curl_easy_strerror(res));
     }
-    
+  
+    cJSON_Delete(root);
+    free(json_str);
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
   }

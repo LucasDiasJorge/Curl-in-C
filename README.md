@@ -18,13 +18,12 @@
   
       - [ ] Delete
     
-      - [ ] Patch
       
 2. Making Post from txt file (feature/post-file)
     
-      - Used on data stored in embedded Rasp pi memory
+      - [x] Used on data stored in embedded Rasp pi memory
   
-  ### Installation
+  ### Curl Installation
 
 1. Linux only, for now
 2. Clone the repo
@@ -35,16 +34,49 @@
    ```sh
    sudo apt-get install libcurl4-openssl-dev
    ```
-4. Compile the project
-    ```sh
-   gcc -o main main.c -lcurl
+
+### cJSON Installation
+
+1. Download cJSON Lib
+
+   https://github.com/DaveGamble/cJSON click on "Code" -> "Download Zip" to download ZIP of cJSON lib
+
+2. Extract the files
+   
+   ```sh
+   tar -xzvf v1.7.14.tar.gz
    ```
-5. Exec main
+
+3. Compile the lib
+
+   Open the terminal where the file was extract.
+
+   Type the commands:
+
     ```sh
-   ./main
+   .cd cJSON-<version>
+   mkdir build
+   cd build
+   cmake ..
+   make
+   sudo make install
+   ```   
+   
+### To run
+
+1. Compile the project
+    ```sh
+   gcc -o main main.c -lcurl -lcjson
+   ```
+2. Exec main
+    
+    - 'g' to Get
+    
+    - 'p' to Post
+    ```sh
+   ./main 'g or p'
    ```   
  
-
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- USAGE EXAMPLES -->
