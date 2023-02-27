@@ -20,7 +20,7 @@
       
 2. Making Post from txt file (feature/post-file)
     
-      - Used on data stored in embedded Rasp pi memory
+      - [x] Used on data stored in embedded Rasp pi memory
   
   ### Installation
 
