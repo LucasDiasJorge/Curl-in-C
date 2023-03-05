@@ -46,7 +46,10 @@ int main(int argc, char *argv[]){
     //headers = curl_slist_append(headers, "Authorization: Bearer <TOKEN>");
 
     curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.1.65:8888/api/v1/ping");
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
+    
     
     res = curl_easy_perform(curl);
     
@@ -54,6 +57,7 @@ int main(int argc, char *argv[]){
         getError(res);
     }
 
+    curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
   }
 
@@ -67,8 +71,9 @@ int main(int argc, char *argv[]){
     //headers = curl_slist_append(headers, "Authorization: Bearer <TOKEN>");
 
     curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.1.65:8888/api/v1/auth");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{\"user\":\"email@email.com\",\"pass\":\"easypass\"}");
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
 
     res = curl_easy_perform(curl);
@@ -90,6 +95,8 @@ int main(int argc, char *argv[]){
 
     curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.1.65:8888/api/v1/delete?id=3");
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST,"DELETE");
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
 
     res = curl_easy_perform(curl);
@@ -113,8 +120,10 @@ int main(int argc, char *argv[]){
 
     curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.1.65:8888/api/v1/update");
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{\"key\":\"value\"}");
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
 
     res = curl_easy_perform(curl);
 
