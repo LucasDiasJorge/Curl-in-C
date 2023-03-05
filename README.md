@@ -21,6 +21,9 @@
 2. Making Post from txt file (feature/post-file)
     
       - [x] Used on data stored in embedded Rasp pi memory
+      
+3. Refactor ifs to functions
+      
   
   ### Installation
 
