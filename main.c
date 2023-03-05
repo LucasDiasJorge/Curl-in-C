@@ -7,7 +7,7 @@ size_t got_data(char *buffer, size_t itemsize, size_t nitems, void* ignorethis){
 
   int linenumber = 1;
 
-  printf("New chunck (%zu bytes)\n", bytes);
+  printf("New chunck (%zu bytes)\n\n", bytes);
 
   printf("%d:",linenumber);
 
@@ -26,6 +26,10 @@ size_t got_data(char *buffer, size_t itemsize, size_t nitems, void* ignorethis){
   return bytes;
 }
 
+void getError(CURLcode res) {
+  fprintf(stderr, "Error: %s\n", curl_easy_strerror(res));
+}
+
 int main(int argc, char *argv[]){
   CURL *curl;
   CURLcode res;
@@ -38,14 +42,16 @@ int main(int argc, char *argv[]){
   if(curl && operation == 'g') {
 
     struct curl_slist *headers = NULL;
-    
+
+    //headers = curl_slist_append(headers, "Authorization: Bearer <TOKEN>");
+
     curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.1.65:8888/api/v1/ping");
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
     
     res = curl_easy_perform(curl);
     
     if(res != CURLE_OK) {
-        fprintf(stderr, "Erro ao acessar a URL: %s\n", curl_easy_strerror(res));
+        getError(res);
     }
 
     curl_easy_cleanup(curl);
@@ -58,6 +64,8 @@ int main(int argc, char *argv[]){
 
     headers = curl_slist_append(headers, "Content-Type: application/json");
 
+    //headers = curl_slist_append(headers, "Authorization: Bearer <TOKEN>");
+
     curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.1.65:8888/api/v1/auth");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{\"user\":\"email@email.com\",\"pass\":\"easypass\"}");
@@ -65,8 +73,8 @@ int main(int argc, char *argv[]){
 
     res = curl_easy_perform(curl);
 
-    if(res != CURLE_OK){
-      fprintf(stderr, "Erro ao acessar a URL: %s\n", curl_easy_strerror(res));
+    if(res != CURLE_OK) {
+        getError(res);
     }
     
     curl_slist_free_all(headers);
@@ -76,14 +84,18 @@ int main(int argc, char *argv[]){
   //Delete
   if(curl && operation == 'd') {
 
+    struct curl_slist *headers = NULL;
+
+    //headers = curl_slist_append(headers, "Authorization: Bearer <TOKEN>");
+
     curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.1.65:8888/api/v1/delete?id=3");
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST,"DELETE");
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
 
     res = curl_easy_perform(curl);
 
-    if(res != CURLE_OK){
-      fprintf(stderr, "Erro ao acessar a URL: %s\n", curl_easy_strerror(res));
+    if(res != CURLE_OK) {
+        getError(res);
     }
     
     curl_slist_free_all(headers);
@@ -97,6 +109,8 @@ int main(int argc, char *argv[]){
 
     headers = curl_slist_append(headers, "Content-Type: application/json");
 
+    //headers = curl_slist_append(headers, "Authorization: Bearer <TOKEN>");
+
     curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.1.65:8888/api/v1/update");
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
@@ -104,8 +118,8 @@ int main(int argc, char *argv[]){
 
     res = curl_easy_perform(curl);
 
-    if(res != CURLE_OK){
-      fprintf(stderr, "Erro ao acessar a URL: %s\n", curl_easy_strerror(res));
+    if(res != CURLE_OK) {
+        getError(res);
     }
 
     curl_slist_free_all(headers);
