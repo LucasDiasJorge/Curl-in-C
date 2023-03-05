@@ -14,7 +14,7 @@
   
       - [x] Get
   
-      - [ ] Put
+      - [x] Put
   
       - [x] Delete
       
@@ -39,7 +39,7 @@
    ```
 5. Exec main
     ```sh
-   ./main 'method g or p'
+   ./main 'method g, p, d or u'
    ```   
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

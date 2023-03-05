@@ -26,7 +26,6 @@ size_t got_data(char *buffer, size_t itemsize, size_t nitems, void* ignorethis){
   return bytes;
 }
 
-
 int main(int argc, char *argv[]){
   CURL *curl;
   CURLcode res;
@@ -37,17 +36,20 @@ int main(int argc, char *argv[]){
 
   //Get
   if(curl && operation == 'g') {
-        curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.1.65:8888/api/v1/ping");
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
-        
-        res = curl_easy_perform(curl);
-        
-        if(res != CURLE_OK) {
-            fprintf(stderr, "Erro ao acessar a URL: %s\n", curl_easy_strerror(res));
-        }
 
-        curl_easy_cleanup(curl);
+    struct curl_slist *headers = NULL;
+    
+    curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.1.65:8888/api/v1/ping");
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
+    
+    res = curl_easy_perform(curl);
+    
+    if(res != CURLE_OK) {
+        fprintf(stderr, "Erro ao acessar a URL: %s\n", curl_easy_strerror(res));
     }
+
+    curl_easy_cleanup(curl);
+  }
 
   //Post
   if(curl && operation == 'p') {
@@ -64,7 +66,7 @@ int main(int argc, char *argv[]){
     res = curl_easy_perform(curl);
 
     if(res != CURLE_OK){
-      fprintf(stderr, "curl_easy_perform() failed: %s\n",curl_easy_strerror(res));
+      fprintf(stderr, "Erro ao acessar a URL: %s\n", curl_easy_strerror(res));
     }
     
     curl_slist_free_all(headers);
@@ -81,9 +83,31 @@ int main(int argc, char *argv[]){
     res = curl_easy_perform(curl);
 
     if(res != CURLE_OK){
-      fprintf(stderr, "curl_easy_perform() failed: %s\n",curl_easy_strerror(res));
+      fprintf(stderr, "Erro ao acessar a URL: %s\n", curl_easy_strerror(res));
     }
     
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);
+  }
+
+  //Put
+  if(curl && operation == 'u') {
+
+    struct curl_slist *headers = NULL;
+
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+
+    curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.1.65:8888/api/v1/update");
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{\"key\":\"value\"}");
+
+    res = curl_easy_perform(curl);
+
+    if(res != CURLE_OK){
+      fprintf(stderr, "Erro ao acessar a URL: %s\n", curl_easy_strerror(res));
+    }
+
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
   }
