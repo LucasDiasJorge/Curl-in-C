@@ -52,7 +52,9 @@
 
 _For more examples, please refer to the [Documentation](https://curl.se/docs/)_
 
-_User Agent [Ref](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent)_
+_For more http tutorials and etc, please refer to the [Documentation](https://developer.mozilla.org/)_
+
+_User Agent [Refer](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent)_
 
 _For post, used [Curl post](https://curl.se/libcurl/c/http-post.html)_
 
