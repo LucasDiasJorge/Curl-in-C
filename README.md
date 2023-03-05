@@ -47,9 +47,9 @@
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Used in embedded projects with Arduino and similar.
-
 _For more examples, please refer to the [Documentation](https://curl.se/docs/)_
+
+_User Agent [Ref](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent)_
 
 _For post, used [Curl post](https://curl.se/libcurl/c/http-post.html)_
 
