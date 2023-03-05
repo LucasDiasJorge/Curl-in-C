@@ -16,7 +16,7 @@
   
       - [ ] Put
   
-      - [ ] Delete
+      - [x] Delete
       
 2. Making Post from txt file (feature/post-file)
     

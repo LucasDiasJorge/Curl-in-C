@@ -39,10 +39,13 @@ int main(int argc, char *argv[]){
   if(curl && operation == 'g') {
         curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.1.65:8888/api/v1/ping");
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
+        
         res = curl_easy_perform(curl);
+        
         if(res != CURLE_OK) {
             fprintf(stderr, "Erro ao acessar a URL: %s\n", curl_easy_strerror(res));
         }
+
         curl_easy_cleanup(curl);
     }
 
@@ -56,6 +59,23 @@ int main(int argc, char *argv[]){
     curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.1.65:8888/api/v1/auth");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{\"user\":\"email@email.com\",\"pass\":\"easypass\"}");
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
+
+    res = curl_easy_perform(curl);
+
+    if(res != CURLE_OK){
+      fprintf(stderr, "curl_easy_perform() failed: %s\n",curl_easy_strerror(res));
+    }
+    
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);  
+  }
+
+  //Delete
+  if(curl && operation == 'd') {
+
+    curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.1.65:8888/api/v1/delete?id=3");
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST,"DELETE");
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
 
     res = curl_easy_perform(curl);
