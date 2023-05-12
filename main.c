@@ -46,6 +46,7 @@ int main(int argc, char *argv[]){
     //headers = curl_slist_append(headers, "Authorization: Bearer <TOKEN>");
 
     curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.1.65:8888/api/v1/ping");
+    //curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, FALSE);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
