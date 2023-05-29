@@ -62,3 +62,8 @@ _User Agent [Refer](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Us
 _For post, used [Curl post](https://curl.se/libcurl/c/http-post.html)_
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+### Using Sockets
+
+ This code establishes a TCP connection to the server using the socket() function, gets the server's IP address using gethostbyname(), sets the sockaddr_in address structure, connects to the server using connect(), sends a basic HTTP GET request to the server using send(), receive and print the response from the server using recv(), and finally close the socket using close().
