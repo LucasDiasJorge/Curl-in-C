@@ -55,6 +55,31 @@ void httpGet(CURL *curl, CURLcode res){
 
 }
 
+void httpPost(CURL *curl, CURLcode res){
+
+  struct curl_slist *headers = NULL;
+
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+
+    //headers = curl_slist_append(headers, "Authorization: Bearer <TOKEN>");
+
+    curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8888/api/v1/auth");
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{\"user\":\"email@email.com\",\"pass\":\"easypass\"}");
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
+
+    res = curl_easy_perform(curl);
+
+    if(res != CURLE_OK) {
+        getError(res);
+    }
+    
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);  
+
+}
+
 
 int main(int argc, char *argv[]){
   CURL *curl;
@@ -79,26 +104,8 @@ int main(int argc, char *argv[]){
   //Post
   if(curl && operation == 'p') {
 
-    struct curl_slist *headers = NULL;
+    httpPost(curl,res);
 
-    headers = curl_slist_append(headers, "Content-Type: application/json");
-
-    //headers = curl_slist_append(headers, "Authorization: Bearer <TOKEN>");
-
-    curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8888/api/v1/auth");
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{\"user\":\"email@email.com\",\"pass\":\"easypass\"}");
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
-
-    res = curl_easy_perform(curl);
-
-    if(res != CURLE_OK) {
-        getError(res);
-    }
-    
-    curl_slist_free_all(headers);
-    curl_easy_cleanup(curl);  
   }
 
   //Delete
