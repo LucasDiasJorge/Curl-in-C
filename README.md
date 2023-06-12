@@ -23,7 +23,7 @@
       - [x] Used on data stored in embedded Rasp pi memory
       
 3. Refactor ifs to functions
-      - [ ] Done ?
+      - [x] Done ?
 
 4. Create a linux command to use specifically own paths (kind of debug)
       - [ ] Done ?
