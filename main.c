@@ -1,178 +1,176 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <curl/curl.h>
- 
-size_t got_data(char *buffer, size_t itemsize, size_t nitems, void* ignorethis){
-  
-  size_t bytes = itemsize * nitems;
 
-  int linenumber = 1;
+size_t got_data(char *buffer, size_t itemsize, size_t nitems, void* ignorethis) {
+    size_t bytes = itemsize * nitems;
 
-  printf("New chunck (%zu bytes)\n\n", bytes);
+    int linenumber = 1;
 
-  printf("%d:",linenumber);
+    printf("New chunk (%zu bytes)\n\n", bytes);
 
-  for(int i=0; i < bytes; i++){
-    
-    printf("%c",buffer[i]);
-    
-    if(buffer[i] == '\n'){
-      linenumber++;
-      printf("%d:",linenumber);
+    printf("%d:", linenumber);
+
+    for(int i = 0; i < bytes; i++) {
+        printf("%c", buffer[i]);
+
+        if (buffer[i] == '\n') {
+            linenumber++;
+            printf("%d:", linenumber);
+        }
     }
-  }
 
-  printf("\n\n");
+    printf("\n\n");
 
-  return bytes;
+    return bytes;
 }
 
 void getError(CURLcode res) {
-  fprintf(stderr, "Error: %s\n", curl_easy_strerror(res));
+    fprintf(stderr, "Error: %s\n", curl_easy_strerror(res));
 }
 
-void httpGet(CURL *curl, CURLcode res){
+void httpGet(CURL *curl, CURLcode res, const char *url) {
 
-  struct curl_slist *headers = NULL;
+    struct curl_slist *headers = NULL;
 
-  //headers = curl_slist_append(headers, "Authorization: Bearer <TOKEN>");
+    // BEARER TOKEN
+    //headers = curl_slist_append(headers, "Authorization: Bearer <TOKEN>");
 
-  curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8888/api/v1/ping");
-  //curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, FALSE);
-  curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
-       
-  res = curl_easy_perform(curl);
+    // BASIC AUTH
+    //curl_easy_setopt(curl, CURLOPT_USERPWD, "root:root");
     
-  if(res != CURLE_OK) {
-    getError(res);
-  }
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
 
-  curl_slist_free_all(headers);
-  curl_easy_cleanup(curl);
+    res = curl_easy_perform(curl);
 
-}
-
-void httpPost(CURL *curl, CURLcode res){
-
-  struct curl_slist *headers = NULL;
-
-  headers = curl_slist_append(headers, "Content-Type: application/json");
-
-  //headers = curl_slist_append(headers, "Authorization: Bearer <TOKEN>");
-
-  curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8888/api/v1/auth");
-  curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{\"user\":\"email@email.com\",\"pass\":\"easypass\"}");
-  curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
-
-  res = curl_easy_perform(curl);
-
-  if(res != CURLE_OK) {
-    getError(res);
-  }
-    
-  curl_slist_free_all(headers);
-  curl_easy_cleanup(curl);  
-
-}
-
-void httpDelete(CURL *curl, CURLcode res){
-    
-  struct curl_slist *headers = NULL;
-
-  //headers = curl_slist_append(headers, "Authorization: Bearer <TOKEN>");
-
-  curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8888/api/v1/delete?id=3");
-  curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST,"DELETE");
-  curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
-
-  res = curl_easy_perform(curl);
-
-  if(res != CURLE_OK) {
-    getError(res);
-  }
-    
-  curl_slist_free_all(headers);
-  curl_easy_cleanup(curl);
-
-}
-
-void httpPut(CURL *curl, CURLcode res){
-    
-  struct curl_slist *headers = NULL;
-
-  headers = curl_slist_append(headers, "Content-Type: application/json");
-
-  //headers = curl_slist_append(headers, "Authorization: Bearer <TOKEN>");
-
-  curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8888/api/v1/update");
-  curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
-  curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "{\"key\":\"value\"}");
-  curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
-
-  res = curl_easy_perform(curl);
-
-  if(res != CURLE_OK) {
-    getError(res);
-  }
-
-  curl_slist_free_all(headers);
-  curl_easy_cleanup(curl);
-
-}
-
-int main(int argc, char *argv[]){
-
-  CURL *curl;
-  CURLcode res;
- 
-  curl = curl_easy_init();
-  
-  if(argv[1] == NULL){
-    perror("Operation not found");
-    exit(EXIT_FAILURE);
-  }
-
-  char operation = *argv[1];
-
-  if(curl){
-
-    //Get
-    if(operation == 'g') {
-
-      httpGet(curl,res);
-    
+    if (res != CURLE_OK) {
+        getError(res);
     }
 
-    //Post
-    if(operation == 'p') {
+    curl_slist_free_all(headers);
+}
 
-      httpPost(curl,res);
+void httpPost(CURL *curl, CURLcode res, const char *url, const char *data) {
 
+    struct curl_slist *headers = NULL;
+
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+
+    // BEARER TOKEN
+    //headers = curl_slist_append(headers, "Authorization: Bearer <TOKEN>");
+
+    // BASIC AUTH
+    //curl_easy_setopt(curl, CURLOPT_USERPWD, "root:root");
+
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
+
+    // Set the data to be sent
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
+
+    res = curl_easy_perform(curl);
+
+    if (res != CURLE_OK) {
+        getError(res);
     }
 
-    //Delete
-    if(operation == 'd') {
+    curl_slist_free_all(headers);
+}
 
-      httpDelete(curl,res);
+void httpDelete(CURL *curl, CURLcode res, const char *url) {
 
+    struct curl_slist *headers = NULL;
+
+    // BEARER TOKEN
+    //headers = curl_slist_append(headers, "Authorization: Bearer <TOKEN>");
+
+    // BASIC AUTH
+    //curl_easy_setopt(curl, CURLOPT_USERPWD, "root:root");
+
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
+
+    res = curl_easy_perform(curl);
+
+    if (res != CURLE_OK) {
+        getError(res);
     }
 
-    //Put
-    if(operation == 'u') {
+    curl_slist_free_all(headers);
+}
 
-      httpPut(curl,res);
+void httpPut(CURL *curl, CURLcode res, const char *url, const char *data) {
 
+    struct curl_slist *headers = NULL;
+
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+
+    // BEARER TOKEN
+    //headers = curl_slist_append(headers, "Authorization: Bearer <TOKEN>");
+
+    // BASIC AUTH
+    //curl_easy_setopt(curl, CURLOPT_USERPWD, "root:root");
+
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
+
+    // Set the data to be sent
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
+
+    res = curl_easy_perform(curl);
+
+    if (res != CURLE_OK) {
+        getError(res);
     }
 
-  }
+    curl_slist_free_all(headers);
+}
 
-  return 0;
+int main(int argc, char *argv[]) {
+
+    CURL *curl;
+    CURLcode res;
+
+    if (argc < 3) {
+        perror("Usage: ./your_program <operation> <url>");
+        exit(EXIT_FAILURE);
+    }
+
+    char operation = *argv[1];
+    const char *url = argv[2];
+
+    // TO-DO
+    const char *data = "{}";
+
+    curl = curl_easy_init();
+
+    if (curl) {
+        if (operation == 'g') {
+            httpGet(curl, res, url);
+        } else if (operation == 'p') {
+            httpPost(curl, res, url, data);
+        } else if (operation == 'd') {
+            httpDelete(curl, res, url);
+        } else if (operation == 'u') {
+            httpPut(curl, res, url, data);
+        } else {
+            perror("Invalid operation");
+            exit(EXIT_FAILURE);
+        }
+
+        curl_easy_cleanup(curl);
+    }
+
+    return 0;
 }
