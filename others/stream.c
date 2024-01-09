@@ -24,13 +24,13 @@ int main() {
     }
 
     // Set the URL to stream data from
-    curl_easy_setopt(curl, CURLOPT_URL, "http://10.0.1.118/api/v1/data/stream");
+    curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/stream-data");
 
     // Set the callback function to handle incoming data
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
 
     // Set the username and password for basic authentication
-    curl_easy_setopt(curl, CURLOPT_USERPWD, "root:root");
+    //curl_easy_setopt(curl, CURLOPT_USERPWD, "root:root");
 
     // Perform the request
     res = curl_easy_perform(curl);
