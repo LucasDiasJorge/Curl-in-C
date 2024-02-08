@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <curl/curl.h>
 
+#define MAX_RESPONSE_SIZE 1024
+
 size_t got_data(char *buffer, size_t itemsize, size_t nitems, void* ignorethis) {
     size_t bytes = itemsize * nitems;
 
@@ -44,6 +46,13 @@ void httpGet(CURL *curl, CURLcode res, const char *url) {
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, got_data);
 
+    /*        PASS RESPONSE AS VARIABLE
+ 
+    char response[MAX_RESPONSE_SIZE] = "";
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, response);
+    
+    */
+    
     res = curl_easy_perform(curl);
 
     if (res != CURLE_OK) {
