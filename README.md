@@ -25,8 +25,6 @@
 3. Refactor ifs to functions
       - [x] Done ?
 
-4. Create a linux command to use specifically own paths (kind of debug)
-      - [ ] Done ?
   
   ### Installation
 
