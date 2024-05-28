@@ -5,27 +5,79 @@
 
 #define MAX_RESPONSE_SIZE 1024
 #define MAX_LINE_LENGTH 100
+#define TOKEN_SIZE 256
+
+char jwt_token[TOKEN_SIZE] = "";
 
 size_t print_chunk(char *buffer, size_t itemsize, size_t nitems, void *ignorethis) {
     size_t bytes = itemsize * nitems;
-
     printf("New chunk (%zu bytes)\n\n", bytes);
 
     int linenumber = 1;
     for (size_t i = 0; i < bytes; i++) {
         printf("%c", buffer[i]);
-
         if (buffer[i] == '\n') {
             printf("%d:", ++linenumber);
         }
     }
-
     printf("\n\n");
 
     return bytes;
 }
 
+
+int extractJsonValue(const char *json, const char *key, char *value, size_t max_length) {
+    // Construct the search pattern with quotes around the key
+    char pattern[256];
+    snprintf(pattern, sizeof(pattern), "\"%s\":\"", key);
+
+    const char *start = strstr(json, pattern);
+
+    if (start != NULL) {
+        start += strlen(pattern); // Move past the key and the characters `":`
+
+        const char *end = strchr(start, '\"');
+        if (end != NULL) {
+            // Calculate the length of the value
+            size_t length = end - start;
+
+            // Check if the value fits in the buffer, including the null terminator
+            if (length < max_length) {
+                // Copy the value to the output buffer
+                strncpy(value, start, length);
+                value[length] = '\0'; // Add the null terminator
+
+                printf("%s\n", value);
+
+                return 0; // Success
+            } else {
+                fprintf(stderr, "Value size exceeds the provided buffer.\n");
+            }
+        } else {
+            fprintf(stderr, "Invalid JSON format.\n");
+        }
+    } else {
+        fprintf(stderr, "Key '%s' not found in JSON.\n", key);
+    }
+
+    return 1; // Failure
+}
+
+char *store_token(char *buffer, size_t itemsize, size_t nitems, void *ignorethis) {
+
+    char ret[256]="";
+
+    extractJsonValue(buffer,"token",ret,256);
+
+    return ret;
+
+}
+
 const char *get_properties(const char *key) {
+    static char auth_path[MAX_LINE_LENGTH] = "";
+    static char auth_user[MAX_LINE_LENGTH] = "";
+    static char auth_pass[MAX_LINE_LENGTH] = "";
+
     FILE *file = fopen("example.properties", "r");
     if (file == NULL) {
         fprintf(stderr, "Error opening file\n");
@@ -33,8 +85,6 @@ const char *get_properties(const char *key) {
     }
 
     char line[MAX_LINE_LENGTH];
-    char auth_path[MAX_LINE_LENGTH] = "";
-    char auth_user[MAX_LINE_LENGTH] = "";
 
     while (fgets(line, sizeof(line), file)) {
         char *token = strtok(line, " =\n");
@@ -49,6 +99,11 @@ const char *get_properties(const char *key) {
                 if (token != NULL) {
                     strcpy(auth_user, token);
                 }
+            } else if (strcmp(token, "AUTH_PASS") == 0) {
+                token = strtok(NULL, " =\n");
+                if (token != NULL) {
+                    strcpy(auth_pass, token);
+                }
             }
         }
     }
@@ -59,44 +114,56 @@ const char *get_properties(const char *key) {
         return auth_path;
     } else if (strcmp(key, "user") == 0) {
         return auth_user;
+    } else if (strcmp(key, "pass") == 0) {
+        return auth_pass;
     } else {
         fprintf(stderr, "Invalid key\n");
         exit(EXIT_FAILURE);
     }
 }
 
-void http_auth(CURL *curl, CURLcode res, const char *data) {
+void http_auth(CURL *curl) {
+
     struct curl_slist *headers = NULL;
     headers = curl_slist_append(headers, "Content-Type: application/json");
 
     curl_easy_setopt(curl, CURLOPT_URL, get_properties("path"));
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, print_chunk);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, store_token);
+
+    char data[MAX_LINE_LENGTH];
+    snprintf(data, sizeof(data), "{\"email\":\"%s\",\"pass\":\"%s\"}", get_properties("user"), get_properties("pass"));
+
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
 
-    res = curl_easy_perform(curl);
+    CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
         fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+        exit(EXIT_FAILURE);
     }
 
     curl_slist_free_all(headers);
 }
 
-void httpGet(CURL *curl, CURLcode res, const char *url) {
-    const char *token = "";
+void httpGet(CURL *curl, const char *url) {
 
-    http_auth(curl, res, token);
+    if (jwt_token[0] == '\0') {
+        http_auth(curl);
+    }
+
+    char auth_header[MAX_LINE_LENGTH] = "Authorization: Bearer ";
+    strcat(auth_header, jwt_token);
 
     struct curl_slist *headers = NULL;
-    headers = curl_slist_append(headers, strcat("Authorization: Bearer ", token));
+    headers = curl_slist_append(headers, auth_header);
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, print_chunk);
 
-    res = curl_easy_perform(curl);
+    CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
         fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
     }
@@ -104,9 +171,17 @@ void httpGet(CURL *curl, CURLcode res, const char *url) {
     curl_slist_free_all(headers);
 }
 
-void httpPost(CURL *curl, CURLcode res, const char *url, const char *data) {
+void httpPost(CURL *curl, const char *url, const char *data) {
+    if (jwt_token[0] == '\0') {
+        http_auth(curl);
+    }
+
+    char auth_header[MAX_LINE_LENGTH] = "Authorization: Bearer ";
+    strcat(auth_header, jwt_token);
+
     struct curl_slist *headers = NULL;
     headers = curl_slist_append(headers, "Content-Type: application/json");
+    headers = curl_slist_append(headers, auth_header);
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
@@ -114,7 +189,7 @@ void httpPost(CURL *curl, CURLcode res, const char *url, const char *data) {
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, print_chunk);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
 
-    res = curl_easy_perform(curl);
+    CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
         fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
     }
@@ -122,8 +197,16 @@ void httpPost(CURL *curl, CURLcode res, const char *url, const char *data) {
     curl_slist_free_all(headers);
 }
 
-void httpDelete(CURL *curl, CURLcode res, const char *url) {
+void httpDelete(CURL *curl, const char *url) {
+    if (jwt_token[0] == '\0') {
+        http_auth(curl);
+    }
+
+    char auth_header[MAX_LINE_LENGTH] = "Authorization: Bearer ";
+    strcat(auth_header, jwt_token);
+
     struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, auth_header);
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
@@ -131,7 +214,7 @@ void httpDelete(CURL *curl, CURLcode res, const char *url) {
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, print_chunk);
 
-    res = curl_easy_perform(curl);
+    CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
         fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
     }
@@ -139,9 +222,17 @@ void httpDelete(CURL *curl, CURLcode res, const char *url) {
     curl_slist_free_all(headers);
 }
 
-void httpPut(CURL *curl, CURLcode res, const char *url, const char *data) {
+void httpPut(CURL *curl, const char *url, const char *data) {
+    if (jwt_token[0] == '\0') {
+        http_auth(curl);
+    }
+
+    char auth_header[MAX_LINE_LENGTH] = "Authorization: Bearer ";
+    strcat(auth_header, jwt_token);
+
     struct curl_slist *headers = NULL;
     headers = curl_slist_append(headers, "Content-Type: application/json");
+    headers = curl_slist_append(headers, auth_header);
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
@@ -150,7 +241,7 @@ void httpPut(CURL *curl, CURLcode res, const char *url, const char *data) {
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, print_chunk);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
 
-    res = curl_easy_perform(curl);
+    CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
         fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
     }
@@ -160,7 +251,7 @@ void httpPut(CURL *curl, CURLcode res, const char *url, const char *data) {
 
 int main(int argc, char *argv[]) {
     CURL *curl;
-    CURLcode res;
+    CURLcode res = CURLE_OK;
 
     if (argc < 3) {
         fprintf(stderr, "Usage: %s <operation> <url>\n", argv[0]);
@@ -170,22 +261,21 @@ int main(int argc, char *argv[]) {
     char operation = *argv[1];
     const char *url = argv[2];
     const char *data = "{}";
-    sprintf(data, "{\"email\":\"%s\",\"pass\":\"%s\"}", get_properties("user"), get_properties("path"));
 
     curl = curl_easy_init();
     if (curl) {
-        switch(operation) {
+        switch (operation) {
             case 'g':
-                httpGet(curl, res, url);
+                httpGet(curl, url);
                 break;
             case 'p':
-                httpPost(curl, res, url, data);
+                httpPost(curl, url, data);
                 break;
             case 'd':
-                httpDelete(curl, res, url);
+                httpDelete(curl, url);
                 break;
             case 'u':
-                httpPut(curl, res, url, data);
+                httpPut(curl, url, data);
                 break;
             default:
                 fprintf(stderr, "Invalid operation\n");
