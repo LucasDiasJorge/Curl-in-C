@@ -4,7 +4,7 @@
 #include <string.h>
 
 #define MAX_RESPONSE_SIZE 1024
-#define MAX_LINE_LENGTH 100
+#define MAX_LINE_LENGTH 516
 #define TOKEN_SIZE 256
 
 char jwt_token[TOKEN_SIZE] = "";
@@ -63,13 +63,13 @@ int extractJsonValue(const char *json, const char *key, char *value, size_t max_
     return 1; // Failure
 }
 
-char *store_token(char *buffer, size_t itemsize, size_t nitems, void *ignorethis) {
+size_t store_token(void *buffer, size_t size, size_t nmemb, void *userdata) {
 
-    char ret[256]="";
+    size_t realsize = size * nmemb;
 
-    extractJsonValue(buffer,"token",ret,256);
+    extractJsonValue(buffer,"token",jwt_token,256);
 
-    return ret;
+    return realsize;
 
 }
 
@@ -127,6 +127,8 @@ void http_auth(CURL *curl) {
     struct curl_slist *headers = NULL;
     headers = curl_slist_append(headers, "Content-Type: application/json");
 
+    CURLcode res; 
+
     curl_easy_setopt(curl, CURLOPT_URL, get_properties("path"));
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
@@ -137,13 +139,14 @@ void http_auth(CURL *curl) {
 
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
 
-    CURLcode res = curl_easy_perform(curl);
+    res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
         fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
         exit(EXIT_FAILURE);
     }
 
     curl_slist_free_all(headers);
+    curl_global_cleanup();
 }
 
 void httpGet(CURL *curl, const char *url) {
@@ -159,6 +162,7 @@ void httpGet(CURL *curl, const char *url) {
     headers = curl_slist_append(headers, auth_header);
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, print_chunk);
