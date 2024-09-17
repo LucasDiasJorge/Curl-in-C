@@ -9,10 +9,15 @@ int main() {
     CURL *curl;
     CURLcode res;
     char auth_token[512];
+    int sleep_time;
 
     // Solicitar o token de autorização via entrada do usuário
     printf("Digite o token de autorização: ");
     scanf("%511s", auth_token);  // Limitar a leitura para evitar overflow
+
+    // Solicitar o tempo de sleep via entrada do usuário
+    printf("Digite o tempo de espera (em segundos) entre as requisições: ");
+    scanf("%d", &sleep_time);
 
     // Iniciar o libcurl
     curl_global_init(CURL_GLOBAL_DEFAULT);
@@ -59,8 +64,8 @@ int main() {
         // Limpar a lista de headers
         curl_slist_free_all(headers);
 
-        // Dormir por 60 segundos antes da próxima iteração
-        sleep(60);
+        // Dormir pelo tempo definido pelo usuário antes da próxima iteração
+        sleep(sleep_time);
     }
 
     // Limpar e finalizar o libcurl
