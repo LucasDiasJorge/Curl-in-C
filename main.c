@@ -39,11 +39,47 @@ void init_request(HttpRequest *req, const char *url) {
     curl_easy_setopt(req->curl, CURLOPT_WRITEFUNCTION, got_data);
 }
 
+void print_response_status_code(const HttpRequest *req) {
+    if(req->res == CURLE_OK) {
+        long http_code = 0;
+        CURLcode info_res = curl_easy_getinfo(req->curl, CURLINFO_RESPONSE_CODE, &http_code);
+
+        if (info_res != CURLE_OK) {
+            printf( "Failed to get HTTP response code: %s\n" , curl_easy_strerror(info_res));
+            return;
+        }
+
+        switch (http_code) {
+            case 200:
+                printf( "Request successful (HTTP 200)\n" );
+            break;
+            case 204:
+                printf( "Request successful, but no content (HTTP 204)\n" );
+            break;
+            case 404:
+                printf( "Resource not found (HTTP 404)\n" );
+            break;
+            case 500:
+                printf( "Internal server error (HTTP 500)\n" );
+            break;
+            default:
+                printf("Request successful, HTTP code: %ld\n", http_code);
+            break;
+        }
+    } else {
+        printf( "curl_easy_perform() failed: %s\n" , curl_easy_strerror(req->res));
+    }
+}
+
 void perform_request(HttpRequest *req) {
     req->res = curl_easy_perform(req->curl);
+
     if (req->res != CURLE_OK) {
         get_error(req->res);
     }
+
+    print_response_status_code(req);
+
     curl_slist_free_all(req->headers);
     curl_easy_cleanup(req->curl);
 }

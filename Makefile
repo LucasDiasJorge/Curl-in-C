@@ -1,6 +1,6 @@
 COMPILER = gcc
 
-curl: main.c
+all: main.c
 	$(COMPILER) -o main main.c -lcurl
 
 clean:
